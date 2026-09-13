@@ -42,6 +42,7 @@ namespace winrt::TerminalApp::implementation
         _controlEvents._SetTaskbarProgress = _control.SetTaskbarProgress(winrt::auto_revoke, { get_weak(), &TerminalPaneContent::_controlSetTaskbarProgress });
         _controlEvents._ReadOnlyChanged = _control.ReadOnlyChanged(winrt::auto_revoke, { get_weak(), &TerminalPaneContent::_controlReadOnlyChanged });
         _controlEvents._FocusFollowMouseRequested = _control.FocusFollowMouseRequested(winrt::auto_revoke, { get_weak(), &TerminalPaneContent::_controlFocusFollowMouseRequested });
+        _controlEvents._ShowNotification = _control.ShowNotification(winrt::auto_revoke, { get_weak(), &TerminalPaneContent::_controlShowNotification });
     }
     void TerminalPaneContent::_removeControlEvents()
     {
@@ -168,6 +169,11 @@ namespace winrt::TerminalApp::implementation
     void TerminalPaneContent::_controlFocusFollowMouseRequested(const IInspectable&, const IInspectable&)
     {
         FocusRequested.raise(*this, nullptr);
+    }
+
+    void TerminalPaneContent::_controlShowNotification(const IInspectable& /*sender*/, const ShowNotificationEventArgs& args)
+    {
+        NotificationRequested.raise(*this, winrt::make<implementation::NotificationEventArgs>(args.Title(), args.Body()));
     }
 
     // Method Description:
@@ -301,7 +307,8 @@ namespace winrt::TerminalApp::implementation
         RestartTerminalRequested.raise(*this, nullptr);
     }
 
-    void TerminalPaneContent::UpdateSettings(const CascadiaSettings& settings)
+    void TerminalPaneContent::UpdateSettings(const CascadiaSettings& settings,
+                                             const winrt::Microsoft::Terminal::Settings::Model::WindowSettings& /*windowSettings*/)
     {
         // Reload our profile from the settings model to propagate bell mode, icon, and close on exit mode (anything that uses _profile).
         const auto profile{ settings.FindProfile(_profile.Guid()) };
